@@ -1,0 +1,6 @@
+{
+  "balanced_anomaly_threshold": 0.5958146628005401,
+  "recon_error_min": 0.0023319122847169638,
+  "recon_error_max": 0.6008681654930115,
+  "lung_mask_threshold": 0.35
+}
