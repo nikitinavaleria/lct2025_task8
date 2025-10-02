@@ -6,7 +6,6 @@ from pathlib import Path
 
 from backend.app.config.config import Config, load_config
 from backend.app.db.db import DB_Connector
-# from backend.app.ml.pathology_model import PathologyModel
 from backend.app.routers import patients, scans, inference
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]

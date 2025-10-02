@@ -17,7 +17,6 @@ import torch
 from ultralytics import YOLO
 
 
-# наши «внутренности» — чисто перенесённые из ноутбука
 from backend.app.ml.config import IMG_SIZE, dataset_mean, dataset_std  # type: ignore
 from backend.app.ml.dicom_to_png import process_dicom_to_png  # type: ignore
 from backend.app.ml.utils import select_central_slices  # type: ignore
@@ -29,11 +28,7 @@ from backend.app.ml.models_local import BinaryClassifier, NormAutoencoder, creat
 # -------------------------
 
 def _default_models_dir() -> Path:
-    """
-    По умолчанию храним веса в backend/models.
-    Этот файл находится: backend/app/ml/pathology_model.py
-    → parents[2] = backend
-    """
+
     here = Path(__file__).resolve()
     return here.parents[2] / "models"
 
@@ -89,12 +84,9 @@ def _load_thresholds(model_dir: Path) -> Dict[str, Any]:
 
 
 def _load_model_and_thresholds(model_dir: Path, device: torch.device) -> Tuple[torch.nn.Module, torch.nn.Module, Dict[str, Any], int]:
-    """
-    Повторяет логику ноутбука: читает model_config.json, грузит backbone, AE и бинарный классификатор.
-    """
+
     map_location = "cpu" if device.type == "cpu" else None
 
-    # model_config.json обязателен (как в ноутбуке)
     cfg_p = model_dir / "model_config.json"
     with open(cfg_p, "r", encoding="utf-8") as f:
         cfg = json.load(f)
@@ -102,7 +94,6 @@ def _load_model_and_thresholds(model_dir: Path, device: torch.device) -> Tuple[t
     img_size = int(cfg.get("img_size", 512))
     backbone_out_dim = int(cfg["backbone_out_dim"])
 
-    # backbone и модели — как в ноутбуке
     backbone = create_resnet_backbone()
     ae_model = NormAutoencoder(backbone, backbone_out_dim)
     ae_model.load_state_dict(
@@ -122,9 +113,7 @@ def _load_model_and_thresholds(model_dir: Path, device: torch.device) -> Tuple[t
     return bin_model, ae_model, thresholds, img_size
 
 
-# --- YOLO: классификация конкретной патологии (по наборам PNG-срезов) ---
 
-# Русские подписи (из файла коллеги)
 _PATHOLOGY_RU = {
     "Arterial wall calcification": "Кальцификация стенки артерии / Обызвествление стенки артерии",
     "Atelectasis": "Ателектаз",
@@ -150,18 +139,13 @@ _PATHOLOGY_RU = {
 }
 
 def _classify_pathology_with_yolo(image_paths: list[str], models_root: Path, imgsz: int = 512, conf: float = 0.5):
-    """
-    Возвращает словарь с победившим классом и сводной статистикой.
-    Если что-то пошло не так — возвращает {"error": "..."}.
-    """
+
     weights = Path(__file__).resolve().parents[2] / "models/mnogoclass.pt"
     if not weights.exists():
         return {"error": f"YOLO weights not found at {weights}"}
 
-    # YOLO умеет принимать список файлов
     try:
         model = YOLO(str(weights))
-        # device: пусть выбирает сам (GPU если есть)
         results = model.predict(source=image_paths, imgsz=imgsz, conf=conf)
     except Exception as e:
         return {"error": f'yolo inference failed: {e}'}
@@ -196,26 +180,18 @@ def _classify_pathology_with_yolo(image_paths: list[str], models_root: Path, img
 # -------------------------
 
 def analyze(file_path: str, temp_dir: str, model_dir: Optional[str] = None) -> dict:
-    """
-    Минимально-инвазивный враппер поверх логики ноутбука.
-    Возвращает:
-      {
-        "db_row": {...},               # одна строка отчёта
-        "explain_heatmap_b64": str|None,
-        "explain_mask_b64": str|None,
-      }
-    """
+
     src_path = Path(temp_dir) / "input"
     out_path = Path(temp_dir) / "out"
     src_path.mkdir(parents=True, exist_ok=True)
     out_path.mkdir(parents=True, exist_ok=True)
 
-    # 1) копия входа
+
     in_path = Path(file_path)
     local_copy = src_path / in_path.name
     _copy_file_or_dir(in_path, local_copy)
 
-    # 2) распаковка ZIP + копия остальных файлов
+
     mappings = []
     if local_copy.suffix.lower() == ".zip":
         mappings += _extract_zip_to_out(local_copy, out_path, src_path)
@@ -228,7 +204,7 @@ def analyze(file_path: str, temp_dir: str, model_dir: Optional[str] = None) -> d
             shutil.copy2(item, dst)
             mappings.append((str(rel), str(rel)))
 
-    # 3) mapping.csv + dicom → png → data.csv
+
     pd.DataFrame(mappings, columns=["orig_path", "real_path"]).to_csv(out_path / "file_mapping.csv", index=False)
 
     process_dicom_to_png(pd.read_csv(out_path / "file_mapping.csv"), out_path)
@@ -241,15 +217,15 @@ def analyze(file_path: str, temp_dir: str, model_dir: Optional[str] = None) -> d
             "explain_mask_b64": None,
         }
 
-    # 4) модели/пороги
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     models_root = Path(model_dir) if model_dir else Path(os.getenv("MODEL_DIR", _default_models_dir()))
     binary_classifier, ae_model, thresholds, img_size = _load_model_and_thresholds(models_root, device)
 
-    # 5) инференс «как у коллеги»
+
     df = pd.read_csv(data_csv)
 
-    # как в main.py: делаем абсолютные пути и отбираем центральные срезы на всем df
+
     df["path_image"] = df["path_image"].apply(lambda p: str((out_path / p).resolve()))
     df = select_central_slices(df, num_slices=16, step=1)
 
@@ -260,11 +236,11 @@ def analyze(file_path: str, temp_dir: str, model_dir: Optional[str] = None) -> d
     if "series_uid" in df.columns:
         groups = df.groupby(["study_uid", "series_uid"])
     else:
-        # если series_uid нет — группируем только по study_uid (редкий случай)
+
         groups = df.groupby(["study_uid"])
 
     for keys, group in groups:
-        # распакуем идентификаторы для отчёта
+
         if isinstance(keys, tuple):
             study_uid, series_uid = keys
         else:
@@ -286,17 +262,16 @@ def analyze(file_path: str, temp_dir: str, model_dir: Optional[str] = None) -> d
             "processing_status": "Success",
             "study_uid": study_uid,
             **({"series_uid": series_uid} if series_uid is not None else {}),
-            "prob_pathology": float(max_prob),  # в ноуте это probability_of_pathology
-            "anomaly_score": float(max_prob),  # оставим дублирующее поле для совместимости
-            "mask_path": saved_mask_rel,  # путь ОТНОСИТЕЛЬНО masks_root
-            "pathology": int(pred),  # бинарное решение из функции (как в ноуте)
+            "prob_pathology": float(max_prob),
+            "anomaly_score": float(max_prob),
+            "mask_path": saved_mask_rel,
+            "pathology": int(pred),
         }
 
         if row["pathology"] == 1 and image_list:
-            yolo_conf = float(0.5)  # можно настраивать порог через thresholds.json
+            yolo_conf = float(0.5)
             yolo_res = _classify_pathology_with_yolo(image_list, models_root=models_root, imgsz=img_size,
                                                      conf=yolo_conf)
-            # сохраняем краткий вывод + полезную сводку в report_row (чтобы попали в report_json/xlsx)
             if yolo_res.get("error"):
                 row["pathology_cls_error"] = yolo_res["error"]
             else:
@@ -316,15 +291,14 @@ def analyze(file_path: str, temp_dir: str, model_dir: Optional[str] = None) -> d
             "explain_mask_b64": None,
         }
 
-    report_row = rows[0]  # у тебя дальше всё равно ожидается 1 строка
+    report_row = rows[0]
 
-    # 6) превью-картинки (mask_path относителен masks_root!)
     explain_mask_b64 = None
     explain_heatmap_b64 = None
     if report_row.get("mask_path"):
-        mask_abs = masks_root / report_row["mask_path"]  # ← ключевое отличие
+        mask_abs = masks_root / report_row["mask_path"]
         explain_mask_b64 = _img_to_b64(mask_abs)
-        # если в ноуте кладётся сразу heatmap — этого может и не быть; попытка не помешает
+
         cand = mask_abs.with_name(mask_abs.stem.replace(".mask", ".heatmap") + ".png")
         if cand.exists():
             explain_heatmap_b64 = _img_to_b64(cand)

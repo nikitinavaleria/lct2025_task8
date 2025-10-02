@@ -6,9 +6,9 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms as T
 import os
-from .config import IMG_SIZE, dataset_mean, dataset_std, resize_before_crop
+from backend.app.ml.config import IMG_SIZE, dataset_mean, dataset_std, resize_before_crop
 
-# ====== Вспомогательные функции (без изменений) ======
+
 
 def denormalize(tensor, mean, std):
     tensor = tensor.clone()
