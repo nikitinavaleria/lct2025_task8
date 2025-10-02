@@ -1,7 +1,12 @@
+# pip install requests
+# pip install pandas
+# pip install openpyxl
+
 import mimetypes
 import csv
 from pathlib import Path
 import requests
+import pandas as pd
 
 CSV_COLUMNS = [
     "path_to_study",
@@ -12,7 +17,7 @@ CSV_COLUMNS = [
     "processing_status",
     "time_of_processing",
     "most_dangerous_pathology_type"
-            ]
+]
 
 def main(data_dir: Path, endpoint: str):
     if not data_dir.exists():
@@ -27,6 +32,7 @@ def main(data_dir: Path, endpoint: str):
     print(f"Нашли {len(files)} файлов")
 
     results_csv = Path("results.csv")
+    results_xlsx = Path("results.xlsx")
     rows_for_csv = []
 
     for i, p in enumerate(files, 1):
@@ -65,12 +71,18 @@ def main(data_dir: Path, endpoint: str):
 
         print(f"[{i}/{len(files)}] {p} -> {status}")
 
+    # --- Сохранение в CSV ---
     with results_csv.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
         writer.writeheader()
         writer.writerows(rows_for_csv)
 
     print(f"Готово. CSV: {results_csv}")
+
+    # --- Сохранение в Excel ---
+    df = pd.DataFrame(rows_for_csv, columns=CSV_COLUMNS)
+    df.to_excel(results_xlsx, index=False)
+    print(f"Готово. Excel: {results_xlsx}")
 
 if __name__ == "__main__":
     data_dir = Path("data")
