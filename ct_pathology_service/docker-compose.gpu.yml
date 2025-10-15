@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  api:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]

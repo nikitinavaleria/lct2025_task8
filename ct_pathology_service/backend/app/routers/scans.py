@@ -193,6 +193,21 @@ def create_router(db):
             [Json(rows), xlsx_bytes, str(id)],
         )
 
+        study_uid = (report_row.get("study_uid") or "").strip()
+        series_uid = (report_row.get("series_uid") or "").strip()
+
+        if study_uid and series_uid:
+            db.execute(
+                """
+                UPDATE scans
+                   SET study_uid = %s,
+                       series_uid = %s,
+                       updated_at = NOW()
+                 WHERE id = %s
+                """,
+                [study_uid, series_uid, str(id)],
+            )
+
         has_pathology_any = (report_row["processing_status"].startswith("Success") and report_row["pathology"] == 1)
 
         return {
