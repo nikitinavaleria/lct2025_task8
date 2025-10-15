@@ -116,6 +116,8 @@ progon/
 
 Запуск осуществляется через поднятие контейнеров: db, backend, frontend
 
+### CPU:
+
 Сборка:
 `docker compose build --no-cache`
 
@@ -125,9 +127,20 @@ progon/
 Остановка: 
 `docker compose down -v`
 
+### GPU:
+
+Установлены драйверы NVIDIA.
+
+Установлен nvidia-container-toolkit.
+
+Сборка:
+`docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build`
+
+Запуск:
+`docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile gpu up -d`
 
 
-После запуска с рекомендуемыми параметрами сервисы будут доступны по адресам:
+### После запуска с рекомендуемыми параметрами сервисы будут доступны по адресам:
 
 Frontend: http://localhost:3000
 
