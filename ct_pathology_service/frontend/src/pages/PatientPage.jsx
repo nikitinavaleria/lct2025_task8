@@ -106,10 +106,18 @@ const PatientPage = () => {
 
   return (
     <div className="patient-page">
-      <div></div>
-      <h1 className="patient-page__title">
-        {patient.first_name} {patient.last_name}
-      </h1>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "2rem 0",
+        }}>
+        <h1 className="patient-page__title">
+          {patient.first_name} {patient.last_name}
+        </h1>
+        <MyButton onClick={() => navigate("/")}>На главную</MyButton>
+      </div>
 
       <div className="scans-section">
         <div className="scans-header">
@@ -152,9 +160,7 @@ const PatientPage = () => {
                 )}
 
                 <div className="scan-card__actions">
-                  <MyButton
-                    onClick={() => handleViewScan(scan.id)}
-                    style={{ background: "#2196F3", color: "white" }}>
+                  <MyButton onClick={() => handleViewScan(scan.id)}>
                     Просмотреть детали
                   </MyButton>
                   <MyButton
@@ -207,12 +213,7 @@ const PatientPage = () => {
                         {row.processing_status}
                       </div>
                     )}
-                    {row.pathology_cls_count > 0 && (
-                      <div>
-                        <strong>Количество классов патологий:</strong>{" "}
-                        {row.pathology_cls_count}
-                      </div>
-                    )}
+
                     {row.pathology_cls_avg_prob && (
                       <div>
                         <strong>Средняя вероятность:</strong>{" "}
