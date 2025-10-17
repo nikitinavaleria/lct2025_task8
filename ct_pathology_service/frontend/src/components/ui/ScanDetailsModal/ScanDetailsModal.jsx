@@ -116,7 +116,7 @@ const ScanDetailsModal = ({ scanId, onClose }) => {
                 )}
               </div>
               <MyButton
-                style={{ marginLeft: "30px", textWrap: "nowrap" }}
+                style={{ textWrap: "nowrap" }}
                 onClick={() => exportToCSV(report, `отчет_${scanId}`)}>
                 Скачать отчёт
               </MyButton>
