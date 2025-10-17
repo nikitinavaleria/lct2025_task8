@@ -11,7 +11,7 @@ export const exportToCSV = (report, fileName) => {
     const localizedRow = {
       "Исследование UID": row.study_uid,
       "Серия UID": row.series_uid,
-      "Вероятность патологии": row.prob_pathology?.toFixed(3) ?? "—",
+      "Вероятность наличия патологии": row.prob_pathology?.toFixed(3) ?? "—",
       "Статус обработки": row.processing_status ?? "—",
       "Наличие патологии":
         row.pathology !== undefined ? "Обнаружена" : "Не обнаружена",

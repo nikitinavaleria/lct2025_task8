@@ -85,7 +85,7 @@ const ScanDetailsModal = ({ scanId, onClose }) => {
                     <ul>
                       {report.rows?.map((row, i) => (
                         <li key={i}>
-                          <strong>Вероятность:</strong>{" "}
+                          <strong>Вероятность наличия патологии</strong>{" "}
                           {row.prob_pathology.toFixed(2)} <br />
                           {row.pathology_cls_ru && (
                             <>
@@ -95,7 +95,7 @@ const ScanDetailsModal = ({ scanId, onClose }) => {
                           )}
                           {row.pathology_cls_avg_prob && (
                             <>
-                              <strong>Средняя вероятность:</strong>{" "}
+                              <strong>Вероятность патологии</strong>{" "}
                               {row.pathology_cls_avg_prob.toFixed(2)}
                             </>
                           )}

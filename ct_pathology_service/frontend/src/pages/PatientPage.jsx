@@ -190,7 +190,7 @@ const PatientPage = () => {
                 {scanReport.rows?.map((row, index) => (
                   <li key={index} className="patient-report__item">
                     <div>
-                      <strong>Вероятность патологии:</strong>{" "}
+                      <strong>Вероятность наличия патологии</strong>{" "}
                       <span
                         className={
                           row.prob_pathology && row.prob_pathology > 0.5
@@ -216,7 +216,7 @@ const PatientPage = () => {
 
                     {row.pathology_cls_avg_prob && (
                       <div>
-                        <strong>Средняя вероятность:</strong>{" "}
+                        <strong>Вероятность патологии:</strong>{" "}
                         {row.pathology_cls_avg_prob
                           ? row.pathology_cls_avg_prob.toFixed(2)
                           : "Н/Д"}
