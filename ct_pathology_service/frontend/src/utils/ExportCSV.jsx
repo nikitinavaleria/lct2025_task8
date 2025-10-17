@@ -35,7 +35,6 @@ export const exportToCSV = (report, fileName) => {
 
     const allFields = { ...localizedRow, ...extraFields };
 
-    // Преобразуем в массив объектов {Ключ, Значение}
     return Object.entries(allFields).map(([key, value]) => ({
       Ключ: key,
       Значение: value,

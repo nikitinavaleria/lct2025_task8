@@ -16,7 +16,9 @@ const PatientPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showDropzone, setShowDropzone] = useState(false);
-  const [scanReport, setScanReport] = useState(null);
+
+  const [newScanReport, setNewScanReport] = useState(null);
+  const [newScanId, setNewScanId] = useState(null);
   const [selectedScanId, setSelectedScanId] = useState(null);
   const reportRef = useRef(null);
 
@@ -65,23 +67,19 @@ const PatientPage = () => {
 
   const handleAddScan = () => {
     setShowDropzone(true);
-    setScanReport(null);
+    setNewScanReport(null);
+    setNewScanId(null);
     setTimeout(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }, 100);
   };
 
   const handleScanAnalyzed = (report, scanId) => {
-    setScanReport(report);
-    setSelectedScanId(scanId);
-    if (report) {
-      setTimeout(() => {
-        reportRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 300);
-    }
+    setNewScanReport(report);
+    setNewScanId(scanId);
+    setTimeout(() => {
+      reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 300);
   };
 
   const handleViewScan = (scanId) => setSelectedScanId(scanId);
@@ -175,17 +173,17 @@ const PatientPage = () => {
 
       {showDropzone && (
         <div>
-          {scanReport && (
+          {newScanReport && (
             <div className="patient-report" ref={reportRef}>
               <h3>Отчёт по исследованию</h3>
               <p>
                 Потенциальная патология:{" "}
-                {scanReport.summary?.has_pathology_any
+                {newScanReport.summary?.has_pathology_any
                   ? "Обнаружена"
                   : "Не обнаружена"}
               </p>
               <ul className="patient-report__list">
-                {scanReport.rows?.map((row, index) => (
+                {newScanReport.rows?.map((row, index) => (
                   <li key={index} className="patient-report__item">
                     <div>
                       <strong>Вероятность наличия патологии:</strong>{" "}
@@ -223,10 +221,10 @@ const PatientPage = () => {
                 ))}
               </ul>
 
-              {scanReport.explain_heatmap_b64 && (
+              {newScanReport.explain_heatmap_b64 && (
                 <div>
                   <img
-                    src={`data:image/png;base64,${scanReport.explain_heatmap_b64}`}
+                    src={`data:image/png;base64,${newScanReport.explain_heatmap_b64}`}
                     alt="Heatmap"
                     style={{
                       maxWidth: "400px",
@@ -241,7 +239,7 @@ const PatientPage = () => {
                   <MyButton
                     style={{ marginLeft: "30px", whiteSpace: "nowrap" }}
                     onClick={() =>
-                      exportToCSV(scanReport, `отчет_${selectedScanId}`)
+                      exportToCSV(newScanReport, `отчет_${newScanId}`)
                     }>
                     Скачать отчёт
                   </MyButton>
@@ -256,7 +254,8 @@ const PatientPage = () => {
             onScanAnalyzed={handleScanAnalyzed}
             onRemovePatient={() => {
               setShowDropzone(false);
-              setScanReport(null);
+              setNewScanReport(null);
+              setNewScanId(null);
             }}
           />
         </div>

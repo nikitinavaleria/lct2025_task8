@@ -188,7 +188,7 @@ const AddScanPage = () => {
             )}
 
             <MyButton
-              style={{ marginLeft: "30px", textWrap: "nowrap" }}
+              style={{ textWrap: "nowrap" }}
               onClick={() =>
                 exportToCSV(report, `отчет_${patient?.id || "scan"}`)
               }>
