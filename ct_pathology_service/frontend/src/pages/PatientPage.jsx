@@ -6,6 +6,7 @@ import MyButton from "../components/ui/MyButton/MyButton";
 import Dropzone from "../components/ui/Dropzone/Dropzone";
 import ScanDetailsModal from "../components/ui/ScanDetailsModal/ScanDetailsModal";
 import "../styles/PatientPage.css";
+import { exportToCSV } from "../utils/ExportCSV";
 
 const PatientPage = () => {
   const { id } = useParams();
@@ -30,7 +31,6 @@ const PatientPage = () => {
         const fetchedScans = Array.isArray(scansResponse.data)
           ? scansResponse.data
           : scansResponse.data?.items ?? [];
-
         setScans(fetchedScans);
         setLoading(false);
       } catch (err) {
@@ -49,7 +49,6 @@ const PatientPage = () => {
         const reports = await Promise.all(
           scans.map((s) => getScanReport(s.id))
         );
-
         setScans((prev) =>
           prev.map((scan, i) => ({
             ...scan,
@@ -61,10 +60,8 @@ const PatientPage = () => {
       }
     };
 
-    if (scans.length > 0) {
-      fetchReports();
-    }
-  }, [scans.length]);
+    if (scans.length > 0) fetchReports();
+  }, [scans]);
 
   const handleAddScan = () => {
     setShowDropzone(true);
@@ -74,8 +71,9 @@ const PatientPage = () => {
     }, 100);
   };
 
-  const handleScanAnalyzed = (report) => {
+  const handleScanAnalyzed = (report, scanId) => {
     setScanReport(report);
+    setSelectedScanId(scanId);
     if (report) {
       setTimeout(() => {
         reportRef.current?.scrollIntoView({
@@ -190,7 +188,7 @@ const PatientPage = () => {
                 {scanReport.rows?.map((row, index) => (
                   <li key={index} className="patient-report__item">
                     <div>
-                      <strong>Вероятность наличия патологии</strong>{" "}
+                      <strong>Вероятность наличия патологии:</strong>{" "}
                       <span
                         className={
                           row.prob_pathology && row.prob_pathology > 0.5
@@ -213,7 +211,6 @@ const PatientPage = () => {
                         {row.processing_status}
                       </div>
                     )}
-
                     {row.pathology_cls_avg_prob && (
                       <div>
                         <strong>Вероятность патологии:</strong>{" "}
@@ -241,6 +238,13 @@ const PatientPage = () => {
                     Тепловая карта среза с подсветкой областей, которые наиболее
                     сильно повлияли на решение модели
                   </h4>
+                  <MyButton
+                    style={{ marginLeft: "30px", whiteSpace: "nowrap" }}
+                    onClick={() =>
+                      exportToCSV(scanReport, `отчет_${selectedScanId}`)
+                    }>
+                    Скачать отчёт
+                  </MyButton>
                 </div>
               )}
             </div>
