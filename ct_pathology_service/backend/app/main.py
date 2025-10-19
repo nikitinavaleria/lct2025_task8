@@ -7,6 +7,9 @@ from pathlib import Path
 from backend.app.config.config import Config, load_config
 from backend.app.db.db import DB_Connector
 from backend.app.routers import patients, scans, inference
+# from config.config import Config, load_config
+# from db.db import DB_Connector
+# from routers import patients, scans, inference
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 MODELS_DIR = BACKEND_DIR / "models"
