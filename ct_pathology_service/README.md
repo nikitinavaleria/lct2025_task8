@@ -41,11 +41,8 @@ REST API для интеграции с внешними системами.
 ## Системные требования для запуска
 
  - Операционная система: Linux / macOS / Windows с поддержкой Docker
- - Минимальные ресурсы:
-      CPU: 4 ядра
-      RAM: 8 Гб
-      Диск: 2 Гб
- - (Опционально) GPU с поддержкой CUDA для ускоренного анализа
+
+
 
 ## Структуру проекта и описание основных файлов
 
@@ -126,18 +123,6 @@ progon/
 
 Остановка: 
 `docker compose down -v`
-
-### GPU:
-
-Установлены драйверы NVIDIA.
-
-Установлен nvidia-container-toolkit.
-
-Сборка:
-`docker compose -f docker-compose.yml -f docker-compose.gpu.yml up --build`
-
-Запуск:
-`docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile gpu up -d`
 
 
 ### После запуска с рекомендуемыми параметрами сервисы будут доступны по адресам:
