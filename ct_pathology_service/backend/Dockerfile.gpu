@@ -1,6 +1,6 @@
 FROM pytorch/pytorch:2.4.1-cuda12.1-cudnn9-runtime
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     git libgl1 libglib2.0-0 tzdata && \
     rm -rf /var/lib/apt/lists/*
 
@@ -16,21 +16,22 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-
+# Убираем torch из requirements.txt перед установкой
 COPY backend/requirements.txt /app/backend/requirements.txt
-RUN python - <<'PY'\n\
-import re, pathlib\n\
-p = pathlib.Path('/app/backend/requirements.txt')\n\
-lines = p.read_text().splitlines()\n\
-keep = [l for l in lines if not re.match(r'\\s*(torch(|vision))\\b', l)]\n\
-pathlib.Path('/tmp/requirements-no-torch.txt').write_text('\\n'.join(keep))\n\
+
+RUN python - <<'PY'
+import re, pathlib
+p = pathlib.Path('/app/backend/requirements.txt')
+lines = p.read_text().splitlines()
+keep = [l for l in lines if not re.match(r'\s*(torch(|vision))\b', l)]
+pathlib.Path('/tmp/requirements-no-torch.txt').write_text('\n'.join(keep))
 PY
+
 RUN pip install --upgrade pip && pip install -r /tmp/requirements-no-torch.txt
 
-
+# Копируем весь проект
 COPY . /app
 
 EXPOSE 8000
-
 
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-server-header", "--no-access-log"]

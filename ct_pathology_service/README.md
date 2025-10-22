@@ -124,6 +124,16 @@ progon/
 Остановка: 
 `docker compose down -v`
 
+### GPU:
+
+Установлены драйверы NVIDIA.
+
+Установлен nvidia-container-toolkit.
+
+Сборка и запуск:
+
+`docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile gpu up --build`
+
 
 ### После запуска с рекомендуемыми параметрами сервисы будут доступны по адресам:
 

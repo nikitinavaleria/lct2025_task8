@@ -4,8 +4,10 @@ services:
   api:
     profiles: ["gpu"]
     build:
-      context: .
+      context: ../../../Downloads
       dockerfile: backend/Dockerfile.gpu
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
     deploy:
       resources:
         reservations:
